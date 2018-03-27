@@ -6,8 +6,9 @@ public class Main {
 
     public static void main(String[] args) {
         WOFCenterStorage wofCenterStorage = new WOFCenterStorage();
-        wofCenterStorage.insertOwner("knightpmatthew@gmail.com", "Matthew", "Knight",
+        wofCenterStorage.registerOwner("knightpmatthew@gmail.com", "Matthew", "Knight",
                 "password123");
-        //wofCenterStorage.registerVehicle("knightpmatthew@gmail.com", //tbd);
+        wofCenterStorage.registerVehicle("w@gmacom", "FYE964", "Toyota",
+                "Vitz RSX", "petrol", 146000, 2005);
     }
 }

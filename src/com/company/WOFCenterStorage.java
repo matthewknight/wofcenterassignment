@@ -1,9 +1,6 @@
 package com.company;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class WOFCenterStorage {
 
@@ -17,7 +14,10 @@ public class WOFCenterStorage {
         System.out.println("Getting connection to : " + url);
 
         // Return the DB Connection object for other methods to perform queries
-        return DriverManager.getConnection(url);
+        Connection conn = DriverManager.getConnection(url);
+        Statement s = conn.createStatement();
+        s.executeUpdate("PRAGMA foreign_keys = ON; ");
+        return conn;
     }
 
     /**
@@ -29,7 +29,7 @@ public class WOFCenterStorage {
      * @param password Password of user
      * @return Whether the operation was successful
      */
-    public boolean insertOwner(String email, String firstName, String lastName,
+    public boolean registerOwner(String email, String firstName, String lastName,
                                    String password) {
         // Check for required details
         assert (email != null && firstName != null && lastName != null && password != null);
@@ -83,7 +83,7 @@ public class WOFCenterStorage {
      * @param manufactureYear Vehicle's year of manufacture
      * @return Whether the operation was successful
      */
-    public boolean insertVehicle(String email, String plate, String carMake, String carModel, String fuelType,
+    public boolean registerVehicle(String email, String plate, String carMake, String carModel, String fuelType,
                                int odometerReading, int manufactureYear) {
         // Check for required details
         assert (email != null && plate != null && carMake != null && carModel != null && odometerReading >= 0 &&
