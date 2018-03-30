@@ -1,12 +1,14 @@
 package Core;
 
-import org.sqlite.SQLiteConfig;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class WOFCenterStorage {
 
     private static final String db_url = "jdbc:sqlite:wofcenter.sqlite";
+
     /**
      * Gets a Connection for the current database
      * @return A Connection object to the database or null if no connection could be made
@@ -22,6 +24,21 @@ public class WOFCenterStorage {
 
         return conn;
     }
+
+/*    public boolean resetDatabase() {
+        try {
+            Connection dbConnection = getConnection();
+            // Check this connection is valid
+            assert (dbConnection != null);
+
+            // Check that the statement will comply with foreign key constraints
+            dbConnection.createStatement().execute(".read tableGenerators.sql");
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }*/
 
     /**
      * Attempts to insert a new Owner into the current database
