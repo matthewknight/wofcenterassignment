@@ -1,12 +1,10 @@
 package Core;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class WOFCenterStorage {
 
+    // Path to the database
     private static final String db_url = "jdbc:sqlite:wofcenter.sqlite";
 
     /**
@@ -14,47 +12,131 @@ public class WOFCenterStorage {
      * @return A Connection object to the database or null if no connection could be made
      */
     private static Connection getConnection() throws SQLException {
-        // Path to the WOF center database
-
-        System.out.println("Getting connection to: " + db_url);
-
         // Return the DB Connection object for other methods to perform queries
-
-        Connection conn = DriverManager.getConnection(db_url);
-
-        return conn;
+        return DriverManager.getConnection(db_url);
     }
 
-/*    public boolean resetDatabase() {
+    /**
+     * Clears all rows in the WOF database
+     * @return Whether the operation was successful
+     */
+    public boolean clearDatabase() {
         try {
             Connection dbConnection = getConnection();
             // Check this connection is valid
             assert (dbConnection != null);
 
-            // Check that the statement will comply with foreign key constraints
-            dbConnection.createStatement().execute(".read tableGenerators.sql");
+            // Run statements that delete all rows from the 2 tables
+            dbConnection.createStatement().execute("DELETE FROM Owner");
+            dbConnection.createStatement().execute("DELETE FROM Vehicle");
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
-    }*/
+    }
+
+    public Owner getOwner(String email) {
+        // Check for required details
+        assert (email != null);
+        email = "'" + email + "'";
+
+        // Form SQL statement with wildcards
+        String sqlSelect = "SELECT * FROM Owner WHERE email = " + email;
+
+        // Set connection object here outside of try/catch scope to close finally
+        Connection dbConnection = null;
+        try {
+            // Grab a connection to the database to perform the query
+            dbConnection = getConnection();
+
+            // Check this connection is valid
+            assert (dbConnection != null);
+
+            // Execute the statement and form a result set obj
+            ResultSet rs = dbConnection.createStatement().executeQuery(sqlSelect);
+
+            // Parse the result set details into a new Owner object to return
+            return new Owner(rs.getString("firstName"), rs.getString("lastName"),
+                    rs.getString("email"), rs.getString("password"));
+        } catch (SQLException e) {
+            // Specify error code for a primary key violation (ie when a non-unique email is added)
+            int ConstraintViolationErrorCode = 19;
+
+            // Check for the specific error code, else print an error stacktrace
+            if (e.getErrorCode() == ConstraintViolationErrorCode) {
+                System.out.println("Not a unique email, failed to add owner.");
+            } else {
+                e.printStackTrace();
+            }
+            return null;
+        } finally {
+            // Attempt to close the created connection
+            try {
+                dbConnection.close();
+            } catch (SQLException e) {
+                System.out.println("Failed to close connection: " + dbConnection);
+            }
+        }
+    }
+
+    public Vehicle getVehicle(String plate) {
+        // Check for required details
+        assert (plate != null);
+        plate = "'" + plate + "'";
+
+        // Form SQL statement with wildcards
+        String sqlSelect = "SELECT * FROM Vehicle WHERE plate = " + plate;
+
+        // Set connection object here outside of try/catch scope to close finally
+        Connection dbConnection = null;
+        try {
+            // Grab a connection to the database to perform the query
+            dbConnection = getConnection();
+
+            // Check this connection is valid
+            assert (dbConnection != null);
+
+            // Execute the statement and form a result set obj
+            ResultSet rs = dbConnection.createStatement().executeQuery(sqlSelect);
+
+            // Parse the result set details into a new Vehicle object to return
+            return new Vehicle(rs.getString("plate"), rs.getString("make"), rs.getString("model"),
+                    rs.getString("fuelType"), rs.getInt("odometer"), rs.getInt("manufactureYear"),
+                    rs.getString("ownerEmail"));
+        } catch (SQLException e) {
+            // Specify error code for a primary key violation (ie when a non-unique email is added)
+            int ConstraintViolationErrorCode = 19;
+
+            // Check for the specific error code, else print an error stacktrace
+            if (e.getErrorCode() == ConstraintViolationErrorCode) {
+                System.out.println("Not a unique email, failed to add owner.");
+            } else {
+                e.printStackTrace();
+            }
+            return null;
+        } finally {
+            // Attempt to close the created connection
+            try {
+                dbConnection.close();
+            } catch (SQLException e) {
+                System.out.println("Failed to close connection: " + dbConnection);
+            }
+        }
+    }
 
     /**
      * Attempts to insert a new Owner into the current database
      *
-     * @param email Email of new owner (must be unique)
-     * @param firstName First name of new owner
-     * @param lastName Last name of new owner
-     * @param password Password of user
+     * @param newOwner New owner to add to the DB
      * @return Whether the operation was successful
      */
-    public boolean registerOwner(String email, String firstName, String lastName,
-                                   String password) {
+    public boolean registerOwner(Owner newOwner) {
+        assert(newOwner != null);
         // Check for required details
-        assert (email != null && firstName != null && lastName != null && password != null);
+        assert (newOwner.getEmail() != null && newOwner.getFirstName() != null
+                && newOwner.getLastName() != null && newOwner.getPassword() != null);
 
-        System.out.println(String.format("Creating a new owner: %s (%s %s)", email, firstName, lastName));
         // Form SQL statement with wildcards
         String sqlInsert = "INSERT INTO Owner (email, firstName, lastName, password) VALUES (?, ?, ?, ?)";
 
@@ -71,13 +153,16 @@ public class WOFCenterStorage {
             PreparedStatement insertStatement = dbConnection.prepareStatement(sqlInsert);
 
             // Insert the Owner's details into the statement
-            insertStatement.setString(1, email);
-            insertStatement.setString(2, firstName);
-            insertStatement.setString(3, lastName);
-            insertStatement.setString(4, password);
+            insertStatement.setString(1, newOwner.getEmail());
+            insertStatement.setString(2, newOwner.getFirstName());
+            insertStatement.setString(3, newOwner.getLastName());
+            insertStatement.setString(4, newOwner.getPassword());
 
-            // Execute the statement and print how many rows were affected
-            System.out.println("Rows added: " + insertStatement.executeUpdate());
+            // Execute the statement
+            insertStatement.executeUpdate();
+
+            // Display success message
+            System.out.println("Successfully added new owner.");
             return true;
         } catch (SQLException e) {
             // Specify error code for a primary key violation (ie when a non-unique email is added)
@@ -103,24 +188,16 @@ public class WOFCenterStorage {
     /**
      * Inserts a new vehicle with the corresponding owner's email
      *
-     * @param email Vehicle owner's email
-     * @param plate Vehicle's license plate
-     * @param carMake Vehicle's make
-     * @param carModel Vehicle's model
-     * @param fuelType Vehicle's fuel type
-     * @param odometerReading Vehicle's mileage
-     * @param manufactureYear Vehicle's year of manufacture
+     * @param newVehicle New vehicle to store
      * @return Whether the operation was successful
      */
-    public boolean registerVehicle(String email, String plate, String carMake, String carModel, String fuelType,
-                               int odometerReading, int manufactureYear) {
+    public boolean registerVehicle(Vehicle newVehicle) {
         // Check for required details
-        assert (email != null && plate != null && carMake != null && carModel != null && odometerReading >= 0 &&
-            manufactureYear >= 1900);
+        assert (newVehicle != null);
 
-        // Print out attempted action to console for debugging purposes
-        System.out.println(String.format("Attempting to create a new vehicle: %s %s: %s of owner %s", carMake,
-                carModel, plate, email));
+        assert (newVehicle.getOwnerEmail() != null && newVehicle.getPlate() != null && newVehicle.getMake() != null &&
+                newVehicle.getModel() != null && newVehicle.getOdometer() >= 0 &&
+                newVehicle.getManufactureYear() >= 1900);
 
         // Form SQL statement with wildcards
         String sqlInsert = "INSERT INTO Vehicle (plate, make, model, fuelType, odometer, manufactureYear, ownerEmail) " +
@@ -143,16 +220,19 @@ public class WOFCenterStorage {
             PreparedStatement insertStatement = dbConnection.prepareStatement(sqlInsert);
 
             // Insert the Owner's details into the statement
-            insertStatement.setString(1, plate);
-            insertStatement.setString(2, carMake);
-            insertStatement.setString(3, carModel);
-            insertStatement.setString(4, fuelType);
-            insertStatement.setInt(5, odometerReading);
-            insertStatement.setInt(6, manufactureYear);
-            insertStatement.setString(7, email);
+            insertStatement.setString(1, newVehicle.getPlate());
+            insertStatement.setString(2, newVehicle.getMake());
+            insertStatement.setString(3, newVehicle.getModel());
+            insertStatement.setString(4, newVehicle.getFuelType());
+            insertStatement.setInt(5, newVehicle.getOdometer());
+            insertStatement.setInt(6, newVehicle.getManufactureYear());
+            insertStatement.setString(7, newVehicle.getOwnerEmail());
 
-            // Execute the statement and print how many rows were affected
-            System.out.println("Rows added: " + insertStatement.executeUpdate());
+            // Execute the statement
+            insertStatement.executeUpdate();
+
+            // Display success message
+            System.out.println("Successfully added new vehicle.");
             return true;
         } catch (SQLException e) {
             // Specify error code for a primary key violation (ie when a non-unique email is added)

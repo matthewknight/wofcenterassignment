@@ -4,9 +4,12 @@ public class Main {
 
     public static void main(String[] args) {
         WOFCenterStorage wofCenterStorage = new WOFCenterStorage();
-        wofCenterStorage.registerOwner("knightpmatthew@gmail.com", "Matthew", "Knight",
+        Owner testOwner = new Owner("Matthew", "Knight","knightpmatthew@gmail.com",
                 "password123");
-        wofCenterStorage.registerVehicle("w@gmacom", "yyyyyy", "Toyota",
-                "Vitz RSX", "petrol", 146000, 2005);
+        wofCenterStorage.registerOwner(testOwner);
+
+        Vehicle testVehicle = new Vehicle("FYE964", "Toyota", "Vitz", "petrol",
+                140000, 2005, "knightpmatthew@gmail.com");
+        wofCenterStorage.registerVehicle(testVehicle);
     }
 }
