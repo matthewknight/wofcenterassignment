@@ -58,4 +58,31 @@ public class WOFCenterStorageTest {
         assertTrue(wofCenterStorage.registerOwner(testOwner));
         assertFalse(wofCenterStorage.registerOwner(testOwner));
     }
+
+
+    /**
+     * Add an owner then a vehicle under that email
+     */
+    @Test
+    public void addRegisteredEmailVehicle() {
+        Owner testOwner = new Owner("Bobby", "Flame",
+                "bobby123@hotmail.com", "password123");
+        wofCenterStorage.registerOwner(testOwner);
+        Vehicle testVehicle = new Vehicle("TESTPLATE", "Nissan", "350z", "petrol",
+                56000, 2001, "bobby123@hotmail.com");
+        assertTrue(wofCenterStorage.registerVehicle(testVehicle));
+    }
+
+    /**
+     * Add an owner then a vehicle with a non registered email
+     */
+    @Test
+    public void addNonRegisteredEmailVehicle() {
+        Owner testOwner = new Owner("Bobby", "Flame",
+                "bobby123@hotmail.com", "password123");
+        wofCenterStorage.registerOwner(testOwner);
+        Vehicle testVehicle = new Vehicle("TESTPLATE", "Nissan", "350z", "petrol",
+                56000, 2001, "yeetman312@uclive.ac.nz");
+        assertFalse(wofCenterStorage.registerVehicle(testVehicle));
+    }
 }
