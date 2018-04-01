@@ -4,6 +4,7 @@ public class Main {
 
     public static void main(String[] args) {
         WOFCenterStorage wofCenterStorage = new WOFCenterStorage();
+
         Owner testOwner = new Owner("Matthew", "Knight","knightpmatthew@gmail.com",
                 "password123");
         wofCenterStorage.registerOwner(testOwner);
@@ -11,5 +12,7 @@ public class Main {
         Vehicle testVehicle = new Vehicle("FYE964", "Toyota", "Vitz", "petrol",
                 140000, 2005, "knightpmatthew@gmail.com");
         wofCenterStorage.registerVehicle(testVehicle);
+
+        System.out.println(wofCenterStorage.getVehicle("FYE964").getModel());
     }
 }

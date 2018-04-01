@@ -9,6 +9,7 @@ public class Owner {
     private String email;
     private String password;
 
+    // Simple owner constructor
     public Owner(String firstName, String lastName, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;

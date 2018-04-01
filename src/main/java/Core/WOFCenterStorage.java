@@ -36,6 +36,11 @@ public class WOFCenterStorage {
         }
     }
 
+    /**
+     * Returns the selected owner from storage
+     * @param email Owner email to query
+     * @return Owner on successful search, null on empty search
+     */
     public Owner getOwner(String email) {
         // Check for required details
         assert (email != null);
@@ -55,6 +60,11 @@ public class WOFCenterStorage {
 
             // Execute the statement and form a result set obj
             ResultSet rs = dbConnection.createStatement().executeQuery(sqlSelect);
+
+            // Check if the search is empty
+            if (!rs.next()) {
+                return null;
+            }
 
             // Parse the result set details into a new Owner object to return
             return new Owner(rs.getString("firstName"), rs.getString("lastName"),
@@ -80,6 +90,11 @@ public class WOFCenterStorage {
         }
     }
 
+    /**
+     * Returns the selected vehicle from storage
+     * @param plate License plate to query
+     * @return Vehicle on successful search, null on empty search
+     */
     public Vehicle getVehicle(String plate) {
         // Check for required details
         assert (plate != null);
@@ -99,6 +114,11 @@ public class WOFCenterStorage {
 
             // Execute the statement and form a result set obj
             ResultSet rs = dbConnection.createStatement().executeQuery(sqlSelect);
+
+            // Check if the search is empty
+            if (!rs.next()) {
+                return null;
+            }
 
             // Parse the result set details into a new Vehicle object to return
             return new Vehicle(rs.getString("plate"), rs.getString("make"), rs.getString("model"),

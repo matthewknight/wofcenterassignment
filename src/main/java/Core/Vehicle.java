@@ -12,6 +12,7 @@ public class Vehicle {
     private int manufactureYear;
     private String ownerEmail;
 
+    // Simple vehicle constructor
     public Vehicle(String plate, String make, String model, String fuelType, int odometer,
                    int manufactureYear, String ownerEmail) {
         this.plate = plate;
